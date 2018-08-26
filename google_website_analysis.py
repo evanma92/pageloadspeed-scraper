@@ -4,27 +4,94 @@ import csv
 import pandas
 import datetime
 
-urls = ['https://www.sensodyne.com.ph',
-		'https://www.hagashimiru.jp',
-		'https://www.sensodyne.com.au',
-		'https://www.sensodyne.in',
-		'http://www.panadol.com.sg',
-		'https://www.voltaren.co.id']
+urls = ['flixonase.com.cn',
+'scottskids.com/id',
+'aquafresh.jp',
+'growthplus.horlicks.in',
+'breatheright.jp',
+'proteinplus.horlicks.in',
+'oats.horlicks.in',
+'physiogel.com/sg',
+'horlicks.com.bd',
+'japan.biotene.com',
+'voltaren.co.nz',
+'biotene.com.au',
+'scottskids.com/my',
+'kamutect.jp',
+'lite.horlicks.in',
+'mydenturecare.cn',
+'scottskids.com/sg',
+'zovirax.com.au',
+'crocin.com', 
+'mydenturecare.com/ko-kr',
+'scottskids.com/ph',
+'physiogel.com/vn',
+'lamisil.com.hk',
+'sensodyne.com.pk',
+'mydenturecare.com/zh-hk',
+'horlicks.com.my',
+'sensodyne.com.bd',
+'scottskids.com/hk',
+'physiogel.com/ph',
+'horlicks.com.sg',
+'parodontax.co.th',
+'flixonase.com.au',
+'aquafresh.com.vn',
+'mydenturecare.com/en-ph',
+'macleans.co.nz',
+'cardiaplus.horlicks.in',
+'lamisil.com.tw',
+'mydenturecare.com/zh-tw',
+'ostocalcium.com',
+'physiogel.com/th',
+'panadol.com.sg',
+'otrivin.co.in',
+'flixonase.co.nz',
+'panadol.lk',
+'panadol.co.th',
+'sensodyne.lk',
+'zovirax.co.nz',
+'lamisil-at.jp',
+'physiogel.hk',
+'sinecod.com.ph',
+'physiogel.com/my']
 
-api_url = 'https://www.googleapis.com/pagespeedonline/v1/runPagespeed?url='
+
+
+api_url = 'https://www.googleapis.com/pagespeedonline/v4/runPagespeed?url='
+url_prefix = 'http://www.'
+
+suggested_fixes = {}
 
 for url in urls:
 
+	url = url_prefix + url
 	brand = url.split(".")[1]
-	country = url[-2:]
+	if 'ostocalcium' in url:
+		country = 'in'
+	else:
+		country = url[-2:]
+
+	suggested_fixes[url] = {}
+	suggested_fixes[url]['Brand'] = brand
+	suggested_fixes[url]['Market'] = country
 
 	date_today = datetime.datetime.today().strftime('%Y-%m-%d')
 	url_to_send = api_url + url
 
 	print("Getting results for %s..." % url)
 	results = json.loads(urllib.urlopen(url_to_send).read())
+
+	# print("results: %s" % results)
 	formatted_results = results['formattedResults']['ruleResults']
 
-	print("Writing results to CSV...")
-	df = pandas.DataFrame.from_dict(formatted_results, orient='index')
-	df.to_csv("%s_%s_performance_analysis_%s.csv" % (brand, country, date_today))
+	keys = formatted_results.keys()
+
+	for key in keys:
+		element_to_optimize = formatted_results[key]['localizedRuleName']
+		rule_impact = formatted_results[key]['ruleImpact']
+		suggested_fixes[url][element_to_optimize] = rule_impact
+
+print("Writing results to CSV...")
+df = pandas.DataFrame.from_dict(suggested_fixes, orient='index')
+df.to_csv("websites_suggested_fixes_%s.csv" % date_today)
